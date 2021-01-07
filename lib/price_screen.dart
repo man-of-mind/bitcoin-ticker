@@ -16,7 +16,6 @@ class _PriceScreenState extends State<PriceScreen> {
   void initState() {
     super.initState();
     getPrice();
-    print(price);
   }
 
   String availablePrice;
@@ -26,11 +25,20 @@ class _PriceScreenState extends State<PriceScreen> {
   String url = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCUSD';
 
   Future getPrice() async {
-    NetworkHelper networkHelper = NetworkHelper();
-    var data = await networkHelper.getData(url);
-    var value = data['last'].toInt();
-    availablePrice = value.toString();
-    isWaiting = false;
+    try {
+      NetworkHelper networkHelper = NetworkHelper();
+      var data = await networkHelper.getData(url);
+      var value = data['last'].toInt();
+      setState(() {
+        availablePrice = value.toString();
+      });
+
+      isWaiting = false;
+    } catch (e) {
+      print(e);
+    }
+    print(isWaiting);
+    print(availablePrice);
   }
 
   DropdownButton<String> androidDropDownButton() {
