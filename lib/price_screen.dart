@@ -1,6 +1,5 @@
 import 'dart:io' show Platform;
 
-import 'package:bitcoin_ticker/networking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -18,27 +17,34 @@ class _PriceScreenState extends State<PriceScreen> {
     getPrice();
   }
 
-  String availablePrice;
+  String bTCPrice;
+  String lTCPrice;
+  String eTHPrice;
   bool isWaiting = true;
   String selectedCurrency = 'USD';
-  String price;
-  String url = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCUSD';
+  String btcPrice;
+  String ethPrice;
+  String ltcPrice;
 
   Future getPrice() async {
     try {
-      NetworkHelper networkHelper = NetworkHelper();
-      var data = await networkHelper.getData(url);
-      var value = data['last'].toInt();
+      CoinData coinData = CoinData(currency: selectedCurrency);
+      List<dynamic> dataPrice = await coinData.getData();
+      List<String> currentPrice = [];
+      for (var jsonData in dataPrice) {
+        String value = jsonData['rate'].toInt();
+        currentPrice.add(value.toString());
+      }
       setState(() {
-        availablePrice = value.toString();
+        bTCPrice = currentPrice[0];
+        lTCPrice = currentPrice[1];
+        eTHPrice = currentPrice[2];
       });
 
       isWaiting = false;
     } catch (e) {
       print(e);
     }
-    print(isWaiting);
-    print(availablePrice);
   }
 
   DropdownButton<String> androidDropDownButton() {
@@ -83,7 +89,9 @@ class _PriceScreenState extends State<PriceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    isWaiting ? price = '?' : price = availablePrice;
+    isWaiting ? btcPrice = '?' : btcPrice = bTCPrice;
+    isWaiting ? ethPrice = '?' : ethPrice = eTHPrice;
+    isWaiting ? ltcPrice = '?' : ltcPrice = lTCPrice;
     return Scaffold(
       appBar: AppBar(
         title: Text('🤑 Coin Ticker'),
@@ -92,9 +100,9 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          getContent(text: '1 BTC = $price $selectedCurrency'),
-          getContent(text: '1 ETH = $price $selectedCurrency'),
-          getContent(text: '1 LTC = $price $selectedCurrency'),
+          getContent(text: '1 BTC = $btcPrice $selectedCurrency'),
+          getContent(text: '1 ETH = $ethPrice $selectedCurrency'),
+          getContent(text: '1 LTC = $ltcPrice $selectedCurrency'),
           Spacer(),
           Container(
             height: 150.0,
