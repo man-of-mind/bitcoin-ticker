@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:bitcoin_ticker/networking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,26 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
+  @override
+  void initState() {
+    super.initState();
+    getPrice();
+    print(price);
+  }
+
+  String availablePrice;
+  bool isWaiting = true;
   String selectedCurrency = 'USD';
+  String price;
+  String url = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCUSD';
+
+  Future getPrice() async {
+    NetworkHelper networkHelper = NetworkHelper();
+    var data = await networkHelper.getData(url);
+    var value = data['last'].toInt();
+    availablePrice = value.toString();
+    isWaiting = false;
+  }
 
   DropdownButton<String> androidDropDownButton() {
     List<DropdownMenuItem<String>> dropDownItems = [];
@@ -28,6 +48,7 @@ class _PriceScreenState extends State<PriceScreen> {
       onChanged: (value) {
         setState(() {
           selectedCurrency = value;
+          getPrice();
         });
       },
     );
@@ -46,37 +67,15 @@ class _PriceScreenState extends State<PriceScreen> {
       onSelectedItemChanged: (int value) {
         setState(() {
           selectedCurrency = currenciesList[value];
+          getPrice();
         });
       },
     );
   }
 
-  Padding getContent({@required String text}) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-      child: Card(
-        color: Colors.lightBlueAccent,
-        elevation: 5.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20.0,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    isWaiting ? price = '?' : price = availablePrice;
     return Scaffold(
       appBar: AppBar(
         title: Text('🤑 Coin Ticker'),
@@ -85,9 +84,9 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          getContent(text: '1 BTC = ? $selectedCurrency'),
-          getContent(text: '1 ETH = ? $selectedCurrency'),
-          getContent(text: '1 LTC = ? $selectedCurrency'),
+          getContent(text: '1 BTC = $price $selectedCurrency'),
+          getContent(text: '1 ETH = $price $selectedCurrency'),
+          getContent(text: '1 LTC = $price $selectedCurrency'),
           Spacer(),
           Container(
             height: 150.0,
@@ -100,4 +99,28 @@ class _PriceScreenState extends State<PriceScreen> {
       ),
     );
   }
+}
+
+Padding getContent({@required String text}) {
+  return Padding(
+    padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+    child: Card(
+      color: Colors.lightBlueAccent,
+      elevation: 5.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 20.0,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ),
+  );
 }
