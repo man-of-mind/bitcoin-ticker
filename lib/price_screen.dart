@@ -32,7 +32,7 @@ class _PriceScreenState extends State<PriceScreen> {
       List<dynamic> dataPrice = await coinData.getData();
       List<String> currentPrice = [];
       for (var jsonData in dataPrice) {
-        String value = jsonData['rate'].toInt();
+        int value = jsonData['rate'].toInt();
         currentPrice.add(value.toString());
       }
       setState(() {
